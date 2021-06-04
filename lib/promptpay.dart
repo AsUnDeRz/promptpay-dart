@@ -40,7 +40,7 @@ enum AccountType { phone, identityNumber, eWallet }
 /// A PromptPay is a payment method in Thailand
 class PromptPay {
   /// Returns [QR Code Data] for PromptPay QR code
-  static String generateQRData(String target, {double amount}) {
+  static String generateQRData(String target, {double? amount}) {
     AccountType accountType = target.length >= 15
         ? (AccountType.eWallet)
         : target.length >= 13
@@ -79,32 +79,25 @@ class PromptPay {
     data.add(checksumID);
     data.add(checksumLength);
 
-    var checksum = _getCrc16XMODEM()
-        .convert(utf8.encode(data.join()))
-        .toRadixString(16)
-        .toUpperCase();
+    var checksum =
+        _getCrc16XMODEM().convert(utf8.encode(data.join())).toRadixString(16).toUpperCase();
 
     return data.join() + checksum;
   }
 
   static String getPromptPayQRWithNewAmount(String qrData, double amount) {
-    Iterable<PromptPayField> data =
-        PromptPayData.fromQRData(qrData).asIterable();
-    var amountData = amountID +
-        _formatAmount(amount).length.toString().padLeft(2, '0') +
-        _formatAmount(amount);
+    Iterable<PromptPayField?> data = PromptPayData.fromQRData(qrData).asIterable();
+    var amountData =
+        amountID + _formatAmount(amount).length.toString().padLeft(2, '0') + _formatAmount(amount);
     var isAlreadyAddAmount = false;
-    var newQRData = data.fold("", (qrData, element) {
-      if (element != null && element.typeID == amountID) {
+    String newQRData = data.fold("", (qrData, element) {
+      if (element != null && element.typeID == amountID && qrData != null) {
         isAlreadyAddAmount = true;
         return qrData + amountData;
       }
 
-      if (element != null) {
-        return qrData +
-            element.typeID +
-            element.length.toString().padLeft(2, '0') +
-            element.data;
+      if (element != null && qrData != null) {
+        return qrData + element.typeID + element.length.toString().padLeft(2, '0') + element.data;
       }
 
       return qrData;
@@ -117,10 +110,7 @@ class PromptPay {
     newQRData = newQRData + checksumID + checksumLength;
 
     return newQRData +
-        _getCrc16XMODEM()
-            .convert(utf8.encode(newQRData))
-            .toRadixString(16)
-            .toUpperCase();
+        _getCrc16XMODEM().convert(utf8.encode(newQRData)).toRadixString(16).toUpperCase();
   }
 
   static Option<String> getAccountNumberFromQRData(String qrData) {
@@ -128,20 +118,20 @@ class PromptPay {
 
     if (promptPayData.transferring != null) {
       if (promptPayData.transferringPhoneNumber != null) {
-        return Option.of(promptPayData.transferringPhoneNumber.data);
+        return Option.of(promptPayData.transferringPhoneNumber!.data);
       }
 
       if (promptPayData.transferringIdentityNumber != null) {
-        return Option.of(promptPayData.transferringIdentityNumber.data);
+        return Option.of(promptPayData.transferringIdentityNumber!.data);
       }
 
       if (promptPayData.transferringEWallet != null) {
-        return Option.of(promptPayData.transferringEWallet.data);
+        return Option.of(promptPayData.transferringEWallet!.data);
       }
     }
 
     if (promptPayData.billing != null) {
-      return Option.of(promptPayData.billingID.data);
+      return Option.of(promptPayData.billingID!.data);
     }
 
     return Option.empty();

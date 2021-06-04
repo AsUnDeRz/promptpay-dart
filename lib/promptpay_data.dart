@@ -40,10 +40,10 @@ class PromptPayField {
     "63": PromptPayFieldType.checksum,
   };
 
-  PromptPayFieldType type;
-  String typeID;
-  int length;
-  String data;
+  late PromptPayFieldType type;
+  late String typeID;
+  late int length;
+  late String data;
 
   PromptPayField();
 
@@ -64,36 +64,35 @@ class PromptPayField {
   static PromptPayFieldType determineFieldType(String fieldData) {
     if (_mapIDNumberWithField[fieldData] == null) {
       return PromptPayFieldType.unknown;
+    } else {
+      return _mapIDNumberWithField[fieldData] ?? PromptPayFieldType.unknown;
     }
-
-    return _mapIDNumberWithField[fieldData];
   }
 }
 
 class PromptPayData {
-  PromptPayField emvcoVersion;
-  PromptPayField qrType;
-  PromptPayField transferring;
-  PromptPayField transferringSubType;
-  PromptPayField transferringPhoneNumber;
-  PromptPayField transferringIdentityNumber;
-  PromptPayField transferringEWallet;
-  PromptPayField billing;
-  PromptPayField billingType;
-  PromptPayField billingID;
-  PromptPayField billingReferenceNumber1;
-  PromptPayField billingReferenceNumber2;
-  PromptPayField country;
-  PromptPayField currency;
-  PromptPayField amount;
-  PromptPayField unknownFieldTypeForBilling;
-  PromptPayField checksum;
+  PromptPayField? emvcoVersion;
+  PromptPayField? qrType;
+  PromptPayField? transferring;
+  PromptPayField? transferringSubType;
+  PromptPayField? transferringPhoneNumber;
+  PromptPayField? transferringIdentityNumber;
+  PromptPayField? transferringEWallet;
+  PromptPayField? billing;
+  PromptPayField? billingType;
+  PromptPayField? billingID;
+  PromptPayField? billingReferenceNumber1;
+  PromptPayField? billingReferenceNumber2;
+  PromptPayField? country;
+  PromptPayField? currency;
+  PromptPayField? amount;
+  PromptPayField? unknownFieldTypeForBilling;
+  PromptPayField? checksum;
 
   PromptPayData.fromQRData(String qrData) {
     var currentIndex = 0;
     while (currentIndex < qrData.length) {
-      var dataLength =
-          int.parse(qrData.substring(currentIndex + 2, currentIndex + 4));
+      var dataLength = int.parse(qrData.substring(currentIndex + 2, currentIndex + 4));
       var promptPayField = PromptPayField.fromSubStringOfQRData(
           qrData.substring(currentIndex, currentIndex + 2 + 2 + dataLength));
 
@@ -135,14 +134,13 @@ class PromptPayData {
     }
 
     // extract subtype
-    if (transferring != null) {
+    if (transferring != null && transferring?.data != null) {
       var trasferringCurrentIndex = 0;
-      while (trasferringCurrentIndex < transferring.data.length) {
-        var dataLength = int.parse(transferring.data.substring(
-            trasferringCurrentIndex + 2, trasferringCurrentIndex + 4));
-        var transferringPromptPayField =
-            PromptPayField.fromTransferringOrBillingSubType(
-                "29_${transferring.data.substring(trasferringCurrentIndex, trasferringCurrentIndex + 2 + 2 + dataLength)}");
+      while (trasferringCurrentIndex < transferring!.data.length) {
+        var dataLength = int.parse(
+            transferring!.data.substring(trasferringCurrentIndex + 2, trasferringCurrentIndex + 4));
+        var transferringPromptPayField = PromptPayField.fromTransferringOrBillingSubType(
+            "29_${transferring!.data.substring(trasferringCurrentIndex, trasferringCurrentIndex + 2 + 2 + dataLength)}");
 
         switch (transferringPromptPayField.type) {
           case PromptPayFieldType.transferringType:
@@ -165,13 +163,13 @@ class PromptPayData {
       }
     }
 
-    if (billing != null) {
+    if (billing != null && billing?.data != null) {
       var billingCurrentIndex = 0;
-      while (billingCurrentIndex < billing.data.length) {
-        var dataLength = int.parse(billing.data
-            .substring(billingCurrentIndex + 2, billingCurrentIndex + 4));
+      while (billingCurrentIndex < billing!.data.length) {
+        var dataLength =
+            int.parse(billing!.data.substring(billingCurrentIndex + 2, billingCurrentIndex + 4));
         var billingPromptPayField = PromptPayField.fromTransferringOrBillingSubType(
-            "30_${billing.data.substring(billingCurrentIndex, billingCurrentIndex + 2 + 2 + dataLength)}");
+            "30_${billing!.data.substring(billingCurrentIndex, billingCurrentIndex + 2 + 2 + dataLength)}");
 
         switch (billingPromptPayField.type) {
           case PromptPayFieldType.billingType:
@@ -195,7 +193,7 @@ class PromptPayData {
     }
   }
 
-  Iterable<PromptPayField> asIterable() {
+  Iterable<PromptPayField?> asIterable() {
     return [
       emvcoVersion,
       qrType,
